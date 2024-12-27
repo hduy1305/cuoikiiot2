@@ -9,7 +9,7 @@ class DatabaseConnection:
 
     def __init__(self):
         # Đường dẫn đến tệp JSON
-        json_path = os.path.join("config", "freeshop-3157a-firebase-adminsdk-1weix-4e5281752f.json")
+        json_path = "freeshop-3157a-firebase-adminsdk-1weix-4e5281752f.json"
 
         # Khởi tạo Firebase nếu chưa khởi tạo
         if not firebase_admin._apps:
