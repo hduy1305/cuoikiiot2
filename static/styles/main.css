@@ -1,0 +1,84 @@
+nav {
+  background-color: #E4B1F0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+
+}
+
+nav a{
+    display: inline-block;
+    padding:10px;
+    text-align: center;
+    font-size:20px;
+    color: black;
+    text-decoration:none;
+}
+
+nav a:hover{
+    background-color:#333;
+    color: white;
+    text-decoration:none;
+}
+
+nav #name:hover {
+    background-color:#E4B1F0;
+}
+
+nav > .select {
+    background-color:#333333e3;
+    color: white;
+}
+
+.container {
+    margin-top: 1%;
+}
+.chart-container {
+    display: none; /* Bắt đầu ẩn biểu đồ */
+}
+.toggle-switch {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+.switch input {
+    display: none;
+}
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+.switch input:checked + .slider {
+    background-color: #3B1E54;
+}
+.slider.round {
+    border-radius: 34px;
+}
+.slider.round:before {
+    border-radius: 50%;
+}
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: 0.4s;
+}
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: 0.4s;
+}
+input:checked + .slider:before {
+    transform: translateX(26px);
+}

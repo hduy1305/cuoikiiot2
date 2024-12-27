@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Tracking Statistic</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1"></script>
+<!--    CSS-->
+    <link rel="stylesheet" href="../static/styles/main.css">
+</head>
+<body>
+    <nav>
+        <a href="/">Theo dõi cửa hàng từ xa</a>
+        <a class="select">Thống kê</a>
+    </nav>
+    <div class="container" style="display: flex; flex-direction: column; align-items: center;">
+        <div>
+            <label for="day">Day:</label>
+            <input type="number" id="day" min="1" max="31" placeholder="DD">
+
+            <label for="month">Month:</label>
+            <select id="month">
+                <option value="null">Select</option>
+                <option value="1">January</option>
+                <option value="2">February</option>
+                <option value="3">March</option>
+                <option value="4">April</option>
+                <option value="5">May</option>
+                <option value="6">June</option>
+                <option value="7">July</option>
+                <option value="8">August</option>
+                <option value="9">September</option>
+                <option value="10">October</option>
+                <option value="11">November</option>
+                <option value="12">December</option>
+            </select>
+
+            <label for="year">Year:</label>
+            <input type="number" id="year" placeholder="YYYY" min="2000">
+
+            <button type="button" class="btn btn-dark" onclick="updateStatistics()">Thống kê</button>
+            <button type="button" class="btn btn-dark" onclick="sendEmail()">Xuất thống kê</button>
+        </div>
+
+    </div>
+
+    <div style="display: flex; flex-direction: column; align-items: center;">
+        <div style="width: 70%; height: auto;">
+            <p class="text-center" style="font-size: 1.5rem;">Biểu đồ thống kê số lượng khách vào/ra</p>
+            <canvas id="statisticsChart"></canvas>
+        </div>
+    </div>
+
+    
+<script>
+function sendEmail() {
+    // Gửi yêu cầu đến API phía backend
+    fetch('/send_report', { // Thay URL bằng API của bạn
+        method: 'GET'
+    })
+    .then(response => {
+        if (response.ok) {
+            alert('Email đã được gửi thành công!');
+        } else {
+            alert('Gửi email thất bại!');
+        }
+    })
+    .catch(error => {
+        console.error('Lỗi:', error);
+        alert('Có lỗi xảy ra!');
+    });
+}
+</script>
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const ctx = document.getElementById('statisticsChart').getContext('2d');
+        let chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: [], // Labels sẽ được cập nhật sau
+                datasets: [
+                    {
+                        label: 'Total Customers Entering',
+                        data: [], // Dữ liệu sẽ được cập nhật sau
+                        backgroundColor:  "#433878",
+                        borderColor: "#433878",
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Total Customers Exiting',
+                        data: [], // Dữ liệu sẽ được cập nhật sau
+                        backgroundColor: '#E4B1F0',
+                        borderColor: '#E4B1F0',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Time Period'
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Number of Customers'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Hàm gọi API và cập nhật biểu đồ
+        async function updateStatistics() {
+            const day = document.getElementById("day").value || null;
+            const month = document.getElementById("month").value || null;
+            const year = document.getElementById("year").value || null;
+
+            // Gửi yêu cầu lên server để lấy dữ liệu
+            fetch('/get/statistics', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `day=${day}&month=${month}&year=${year}`
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const result = data["result"] || [];
+                        console.log(data)
+
+                        // Dữ liệu khách hàng vào và ra
+                        const entering = result.map(item => item["total_customers_entering"]);
+                        const exiting = result.map(item => item["total_customers_exiting"]);
+                        const labels = result.map(item => item["year"] || item["month"] || item["day"] || item["hour"]);
+
+                        // Cập nhật biểu đồ
+                        chart.data.labels = labels;
+                        chart.data.datasets[0].data = entering;
+                        chart.data.datasets[1].data = exiting;
+
+                        if (result != []) {
+                            if (result[0]["year"] != null) {
+                                chart.options.scales.x.title.text = "Year";
+                            }
+                            if (result[0]["month"] != null) {
+                                chart.options.scales.x.title.text = "Month";
+                            }
+                            if (result[0]["day"] != null) {
+                                chart.options.scales.x.title.text = "Day";
+                            }
+                            if (result[0]["hour"] != null) {
+                                chart.options.scales.x.title.text = "Hour";
+                            }
+                        }
+
+                        chart.update();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                });
+        }
+
+        
+
+        // Gán hàm updateStatistics vào nút Thống kê
+        window.updateStatistics = updateStatistics;
+    });
+</script>
+
+
+<!-- Bootstrap JS and dependencies -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
